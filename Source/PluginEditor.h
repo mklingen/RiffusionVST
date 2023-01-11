@@ -39,7 +39,8 @@ private:
 
     void onGenerateClicked();
     void onRecordClicked();
-    void onPlayClicked();
+    void onPlayRecordingClicked();
+    void onPlayGenerationClicked();
 
     juce::TextEditor serverIp;
     juce::TextEditor prompt1Text;
@@ -50,8 +51,9 @@ private:
     juce::Slider denoisingSlider;
     juce::Slider itersSlider;
     juce::TextButton recordButton;
+    juce::TextButton playbackRecordingButton;
     juce::TextButton generateButton;
-    juce::TextButton playbackButton;
+    juce::TextButton playbackGenerationButton;
     juce::DrawableText messageText;
     RecordingState state = RecordingState::Idle;
 

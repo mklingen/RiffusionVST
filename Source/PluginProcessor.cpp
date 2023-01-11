@@ -19,7 +19,7 @@ RiffusionVSTAudioProcessor::RiffusionVSTAudioProcessor()
                        .withInput  ("Input",  juce::AudioChannelSet::mono(), true)
                        .withOutput ("Output", juce::AudioChannelSet::mono(), true)
                        )
-    ,recordingBuffer(1, maxRecordingBufferSize)
+    ,recordingBuffer(1, maxRecordingBufferSize), generationBuffer(1, maxRecordingBufferSize)
 {
     wavInterface.reset(new juce::WavAudioFormat());
     wavWriteBuffer.resize(maxRecordingBufferSize * sizeof(uint16_t), 0);
@@ -107,6 +107,7 @@ void RiffusionVSTAudioProcessor::prepareToPlay (double sampleRate, int samplesPe
         prevSampleRate = currentSampleRate;
         maxRecordingBufferSize = static_cast<int>(maxRecordingBufferLengthSeconds * currentSampleRate);
         recordingBuffer = juce::AudioBuffer<float>(1, maxRecordingBufferSize);
+        generationBuffer = juce::AudioBuffer<float>(1, maxRecordingBufferSize);
     }
     hasAnyAudio = true;
 }
@@ -156,7 +157,7 @@ bool RiffusionVSTAudioProcessor::appendBlock(const juce::AudioBuffer<float>& inp
 }
 
 void RiffusionVSTAudioProcessor::startRecording() {
-    if (isPlaying) {
+    if (playState != PlayState::NotPlaying) {
         stopPlaying();
     }
     isRecording = true;
@@ -181,17 +182,17 @@ void RiffusionVSTAudioProcessor::stopRecording() {
     base64Wav = juce::Base64::toBase64(memStream->getData(), memStream->getDataSize());
 }
 
-void RiffusionVSTAudioProcessor::startPlaying() {
+void RiffusionVSTAudioProcessor::startPlaying(PlayState state) {
     if (isRecording) {
         stopRecording();
     }
     playbackStartPtr = 0;
-    isPlaying = true;
+    playState = state;
     message = "Started Playing";
 }
 
 void RiffusionVSTAudioProcessor::stopPlaying() {
-    isPlaying = false;
+    playState = PlayState::NotPlaying;
     message = "Stopped Playing";
 }
 
@@ -216,19 +217,21 @@ void RiffusionVSTAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    if (isPlaying) {
+    if (playState != PlayState::NotPlaying) {
+        const auto& playBuffer = ((playState == PlayState::PlayingRecorded) 
+            ? recordingBuffer : generationBuffer);
         for (int channel = 0; channel < totalNumInputChannels; ++channel)
         {
             int samplesToEnd = recordingStartPtr - playbackStartPtr;
             if (samplesToEnd <= 0) {
                 playbackStartPtr = 0;
-                samplesToEnd = recordingBuffer.getNumSamples();
+                samplesToEnd = playBuffer.getNumSamples();
             }
-            int minBufferSize = std::min(recordingBuffer.getNumSamples(),
+            int minBufferSize = std::min(playBuffer.getNumSamples(),
                 buffer.getNumSamples());
             int blockSize = std::min(std::min(minBufferSize, recordingStartPtr), samplesToEnd);
             buffer.copyFrom(channel, 0,
-                recordingBuffer.getReadPointer(0) + playbackStartPtr,
+                playBuffer.getReadPointer(0) + playbackStartPtr,
                 blockSize
             );
             playbackStartPtr += blockSize;

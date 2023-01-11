@@ -19,7 +19,7 @@ RiffusionVSTAudioProcessorEditor::RiffusionVSTAudioProcessorEditor (RiffusionVST
     serverIp.setText("http://127.0.0.1:3000");
     prompt1Text.setText("prompt 1");
     prompt2Text.setText("prompt 2");
-    generateButton.setButtonText("Generate");
+    generateButton.setButtonText("Generate New");
     generateButton.onClick = [this]() {
         onGenerateClicked();
     };
@@ -29,9 +29,14 @@ RiffusionVSTAudioProcessorEditor::RiffusionVSTAudioProcessorEditor (RiffusionVST
         onRecordClicked();
     };
 
-    playbackButton.setButtonText("Play");
-    playbackButton.onClick = [this]() {
-        onPlayClicked();
+    playbackRecordingButton.setButtonText("Play Recorded");
+    playbackRecordingButton.onClick = [this]() {
+        onPlayRecordingClicked();
+    };
+
+    playbackGenerationButton.setButtonText("Play Generated");
+    playbackGenerationButton.onClick = [this]() {
+        onPlayGenerationClicked();
     };
 
     alphaSlider.setTextValueSuffix(" Blend");
@@ -60,8 +65,9 @@ RiffusionVSTAudioProcessorEditor::RiffusionVSTAudioProcessorEditor (RiffusionVST
     addAndMakeVisible(&itersSlider);
     addAndMakeVisible(&seedText);
     addAndMakeVisible(&recordButton);
+    addAndMakeVisible(&playbackRecordingButton);
     addAndMakeVisible(&generateButton);
-    addAndMakeVisible(&playbackButton);
+    addAndMakeVisible(&playbackGenerationButton);
     addAndMakeVisible(&messageText);
 }
 
@@ -69,7 +75,8 @@ void RiffusionVSTAudioProcessorEditor::onGenerateClicked() {
     if (state != RecordingState::Generating) {
         state = RecordingState::Generating;
         recordButton.setEnabled(false);
-        playbackButton.setEnabled(false);
+        playbackRecordingButton.setEnabled(false);
+        playbackGenerationButton.setEnabled(false);
         generateButton.setButtonText("Stop");
         RiffusionVSTAudioProcessor::ProcessParams params;
         params.alpha = alphaSlider.getValue();
@@ -85,7 +92,8 @@ void RiffusionVSTAudioProcessorEditor::onGenerateClicked() {
     else {
         state = RecordingState::Idle;
         recordButton.setEnabled(true);
-        playbackButton.setEnabled(true);
+        playbackRecordingButton.setEnabled(true);
+        playbackGenerationButton.setEnabled(true);
         generateButton.setButtonText("Generate");
     }
 }
@@ -94,31 +102,55 @@ void RiffusionVSTAudioProcessorEditor::onRecordClicked() {
     if (state == RecordingState::Recording) {
         state = RecordingState::Idle;
         recordButton.setButtonText("Record");
-        playbackButton.setEnabled(true);
+        playbackRecordingButton.setEnabled(true);
+        playbackGenerationButton.setEnabled(true);
         generateButton.setEnabled(true);
         audioProcessor.stopRecording();
     } else {
         state = RecordingState::Recording;
         recordButton.setButtonText("Stop");
-        playbackButton.setEnabled(false);
+        playbackRecordingButton.setEnabled(false);
+        playbackGenerationButton.setEnabled(false);
         generateButton.setEnabled(false);
         audioProcessor.startRecording();
     }
 }
 
-void RiffusionVSTAudioProcessorEditor::onPlayClicked() {
+void RiffusionVSTAudioProcessorEditor::onPlayRecordingClicked() {
     if (state != RecordingState::Playing) {
         state = RecordingState::Playing;
         recordButton.setEnabled(false);
         generateButton.setEnabled(false);
-        playbackButton.setButtonText("Stop");
-        audioProcessor.startPlaying();
+        playbackGenerationButton.setEnabled(false);
+        playbackRecordingButton.setEnabled(true);
+        playbackRecordingButton.setButtonText("Stop");
+        audioProcessor.startPlaying(RiffusionVSTAudioProcessor::PlayState::PlayingRecorded);
     }
     else {
         state = RecordingState::Idle;
         recordButton.setEnabled(true);
         generateButton.setEnabled(true);
-        playbackButton.setButtonText("Play");
+        playbackGenerationButton.setEnabled(true);
+        playbackRecordingButton.setEnabled(true);
+        playbackRecordingButton.setButtonText("Play");
+        audioProcessor.stopPlaying();
+    }
+}
+void RiffusionVSTAudioProcessorEditor::onPlayGenerationClicked() {
+    if (state != RecordingState::Playing) {
+        state = RecordingState::Playing;
+        recordButton.setEnabled(false);
+        generateButton.setEnabled(false);
+        playbackRecordingButton.setEnabled(false);
+        playbackGenerationButton.setButtonText("Stop");
+        audioProcessor.startPlaying(RiffusionVSTAudioProcessor::PlayState::PlayingGenerated);
+    }
+    else {
+        state = RecordingState::Idle;
+        recordButton.setEnabled(true);
+        generateButton.setEnabled(true);
+        playbackRecordingButton.setEnabled(true);
+        playbackGenerationButton.setButtonText("Play");
         audioProcessor.stopPlaying();
     }
 }
@@ -142,21 +174,24 @@ void RiffusionVSTAudioProcessorEditor::paint (juce::Graphics& g)
     if (!audioProcessor.getIsRecording() && state == RecordingState::Recording) {
         state = RecordingState::Idle;
         recordButton.setButtonText("Record");
-        playbackButton.setEnabled(true);
+        playbackRecordingButton.setEnabled(true);
         generateButton.setEnabled(true);
     }
-    else if (!audioProcessor.getIsPlaying() && state == RecordingState::Playing) {
+    else if (audioProcessor.getPlayState() == RiffusionVSTAudioProcessor::PlayState::NotPlaying &&
+               state == RecordingState::Playing) {
         state = RecordingState::Idle;
         recordButton.setEnabled(true);
         generateButton.setEnabled(true);
-        playbackButton.setButtonText("Play");
+        playbackRecordingButton.setButtonText("Play Recorded");
+        playbackGenerationButton.setButtonText("Play Generated");
     }
     else if (!audioProcessor.getIsGenerating() && state == RecordingState::Generating) {
         state = RecordingState::Idle;
         recordButton.setEnabled(true);
-        playbackButton.setEnabled(true);
+        playbackRecordingButton.setEnabled(true);
+        playbackGenerationButton.setEnabled(true);
         generateButton.setEnabled(true);
-        generateButton.setButtonText("Generate");
+        generateButton.setButtonText("Generate New");
     }
 }
 
@@ -187,8 +222,11 @@ void RiffusionVSTAudioProcessorEditor::resized()
     strengthSlider.setBounds(l, next_row(), r, elementHeight);
     denoisingSlider.setBounds(l, next_row(), r, elementHeight);
     itersSlider.setBounds(l, next_row(), r, elementHeight);
-    recordButton.setBounds(l, next_row(), r, elementHeight);
-    generateButton.setBounds(l, next_row(), r, elementHeight);
-    playbackButton.setBounds(l, next_row(), r, elementHeight);
+    int recording_row = next_row();
+    recordButton.setBounds(l, recording_row, r / 2, elementHeight);
+    playbackRecordingButton.setBounds(l + r / 2, recording_row, r / 2, elementHeight);
+    int gen_row = next_row();
+    generateButton.setBounds(l, gen_row, r / 2, elementHeight);
+    playbackGenerationButton.setBounds(l + r / 2, gen_row, r / 2, elementHeight);
     messageText.setBoundingBox(juce::Parallelogram(juce::Rectangle<float>(l, next_row(), r, elementHeight)));
 }
