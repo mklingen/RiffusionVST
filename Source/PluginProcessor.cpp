@@ -191,7 +191,8 @@ void RiffusionVSTAudioProcessor::startPlaying(PlayState state) {
     message = "Started Playing";
 }
 
-void RiffusionVSTAudioProcessor::stopPlaying() {
+void RiffusionVSTAudioProcessor::stopPlaying() 
+{
     playState = PlayState::NotPlaying;
     message = "Stopped Playing";
 }
@@ -308,7 +309,7 @@ void RiffusionVSTAudioProcessor::startGenerating(const RiffusionVSTAudioProcesso
          
                             std::unique_ptr<juce::AudioFormatReader> reader(wavInterface->createReaderFor(inputBuffer, true));
                             if (reader) {
-                                reader->read(&recordingBuffer, 0, static_cast<int>(reader->lengthInSamples), 0, true, false);
+                                reader->read(&generationBuffer, 0, static_cast<int>(reader->lengthInSamples), 0, true, false);
                             }
                             else {
                                 message = "Failed to read memory for WAV file.";

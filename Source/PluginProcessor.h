@@ -134,6 +134,7 @@ private:
     int recordingStartPtr = 0;
     // Sample where we are currently outputting the audio data from the buffer.
     int playbackStartPtr = 0;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RiffusionVSTAudioProcessor)
 };

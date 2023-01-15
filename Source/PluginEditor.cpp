@@ -11,7 +11,7 @@
 
 //==============================================================================
 RiffusionVSTAudioProcessorEditor::RiffusionVSTAudioProcessorEditor (RiffusionVSTAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor(&p), audioProcessor(p), updateTimer([this]() { this->onUpdate(); })
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -69,6 +69,14 @@ RiffusionVSTAudioProcessorEditor::RiffusionVSTAudioProcessorEditor (RiffusionVST
     addAndMakeVisible(&generateButton);
     addAndMakeVisible(&playbackGenerationButton);
     addAndMakeVisible(&messageText);
+    updateTimer.startTimer(30);
+}
+
+RiffusionVSTAudioProcessorEditor::LambdaTimer::LambdaTimer(std::function<void()> lambda) : m_lambda(lambda), juce::Timer() {
+}
+
+void RiffusionVSTAudioProcessorEditor::LambdaTimer::timerCallback() {
+    m_lambda();
 }
 
 void RiffusionVSTAudioProcessorEditor::onGenerateClicked() {
@@ -159,16 +167,7 @@ RiffusionVSTAudioProcessorEditor::~RiffusionVSTAudioProcessorEditor()
 {
 }
 
-//==============================================================================
-void RiffusionVSTAudioProcessorEditor::paint (juce::Graphics& g)
-{
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-    g.setColour(juce::Colours::white);
-    g.setFont(19.0f);
-    g.drawText("Riffusion VST", 0, 0, 300, 250, 30, juce::Justification::left);
-    g.setFont(15.0f);
-    g.drawFittedText("Server IP: ", serverIp.getPosition().x - 120, serverIp.getPosition().y, 100, 30, juce::Justification::right, 1);
+void RiffusionVSTAudioProcessorEditor::onUpdate() {
     messageText.setText(audioProcessor.message);
 
     if (!audioProcessor.getIsRecording() && state == RecordingState::Recording) {
@@ -178,7 +177,7 @@ void RiffusionVSTAudioProcessorEditor::paint (juce::Graphics& g)
         generateButton.setEnabled(true);
     }
     else if (audioProcessor.getPlayState() == RiffusionVSTAudioProcessor::PlayState::NotPlaying &&
-               state == RecordingState::Playing) {
+        state == RecordingState::Playing) {
         state = RecordingState::Idle;
         recordButton.setEnabled(true);
         generateButton.setEnabled(true);
@@ -193,6 +192,18 @@ void RiffusionVSTAudioProcessorEditor::paint (juce::Graphics& g)
         generateButton.setEnabled(true);
         generateButton.setButtonText("Generate New");
     }
+}
+
+//==============================================================================
+void RiffusionVSTAudioProcessorEditor::paint(juce::Graphics& g)
+{
+    // (Our component is opaque, so we must completely fill the background with a solid colour)
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+    g.setColour(juce::Colours::white);
+    g.setFont(19.0f);
+    g.drawText("Riffusion VST", 0, 0, 300, 250, 30, juce::Justification::left);
+    g.setFont(15.0f);
+    g.drawFittedText("Server IP: ", serverIp.getPosition().x - 120, serverIp.getPosition().y, 100, 30, juce::Justification::right, 1);
 }
 
 void RiffusionVSTAudioProcessorEditor::resized()

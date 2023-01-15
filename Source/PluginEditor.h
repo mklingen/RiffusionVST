@@ -56,7 +56,14 @@ private:
     juce::TextButton playbackGenerationButton;
     juce::DrawableText messageText;
     RecordingState state = RecordingState::Idle;
-
+    class LambdaTimer : public juce::Timer {
+        public:
+            LambdaTimer(std::function<void()> lambda);
+            virtual void timerCallback() override;
+            std::function<void()> m_lambda;
+    };
+    LambdaTimer updateTimer;
+    void onUpdate();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RiffusionVSTAudioProcessorEditor)
 };

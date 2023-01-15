@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="cwipx0" name="RiffusionVST" projectType="audioplug" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
+              addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
+              pluginVST3Category="Fx,Generator,Network">
   <MAINGROUP id="KRu5jy" name="RiffusionVST">
     <GROUP id="{F37BF7D7-566A-BDFC-3FED-B5E3242E74E6}" name="Source">
       <FILE id="gN5x0k" name="PluginProcessor.cpp" compile="1" resource="0"
@@ -21,34 +22,34 @@
         <CONFIGURATION isDebug="0" name="Release" targetName="RiffusionVST"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_basics" path="../../../Desktop/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../../Desktop/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../../Desktop/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="../../../Desktop/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../../Desktop/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../../../Desktop/JUCE/modules"/>
-        <MODULEPATH id="juce_core" path="../../../Desktop/JUCE/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../../Desktop/JUCE/modules"/>
-        <MODULEPATH id="juce_events" path="../../../Desktop/JUCE/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../../Desktop/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../../Desktop/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../../Desktop/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="..\..\..\..\Desktop\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="..\..\..\..\Desktop\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="..\..\..\..\Desktop\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="..\..\..\..\Desktop\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="..\..\..\..\Desktop\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_utils" path="..\..\..\..\Desktop\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="..\..\..\..\Desktop\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="..\..\..\..\Desktop\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="..\..\..\..\Desktop\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="..\..\..\..\Desktop\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="..\..\..\..\Desktop\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="..\..\..\..\Desktop\JUCE\modules"/>
       </MODULEPATHS>
     </VS2022>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="1"
             useGlobalPath="0"/>
-    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
-    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
   </MODULES>
 </JUCERPROJECT>
