@@ -14,7 +14,7 @@
 //==============================================================================
 /**
 */
-class RiffusionVSTAudioProcessorEditor  : public juce::AudioProcessorEditor
+class RiffusionVSTAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::ChangeListener
 {
 public:
     RiffusionVSTAudioProcessorEditor (RiffusionVSTAudioProcessor&);
@@ -64,6 +64,24 @@ private:
     };
     LambdaTimer updateTimer;
     void onUpdate();
+    juce::AudioFormatManager formatManager;
+    juce::AudioThumbnailCache thumbnailCache;
+    void changeListenerCallback(juce::ChangeBroadcaster* source) override;
+    struct AudioThumbnailWidget {
+        juce::AudioThumbnail thumbnail;
+        juce::Rectangle<int> bounds;
+        void paint(juce::Graphics& g);
+    };
+    // Waveform of the recording buffer.
+    AudioThumbnailWidget recordingThumbnail;
+    // Waveform of the generation buffer.
+    AudioThumbnailWidget generatedThumbnail;
+    // This is just a number indicating a kind of change counter to the thumbnails. Gets
+    // incremented every time we want to change the thumbnail.
+    int thumbHash = 0;
+    void updateThumbnails();
+
+    void reconcileUIState();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RiffusionVSTAudioProcessorEditor)
 };

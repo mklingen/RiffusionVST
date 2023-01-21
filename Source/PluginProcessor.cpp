@@ -147,6 +147,9 @@ bool RiffusionVSTAudioProcessor::isBusesLayoutSupported (const BusesLayout& layo
 
 bool RiffusionVSTAudioProcessor::appendBlock(const juce::AudioBuffer<float>& input)
 {
+    if (input.getNumChannels() == 0) {
+        return false;
+    }
     // Append a block of data into the recording buffer.
     int numToCopy = std::min(maxRecordingBufferSize - recordingStartPtr, input.getNumSamples());
     recordingBuffer.copyFrom(0, recordingStartPtr, input.getReadPointer(0), numToCopy);
@@ -203,51 +206,76 @@ void RiffusionVSTAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
-    
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    if (playState != PlayState::NotPlaying) {
-        const auto& playBuffer = ((playState == PlayState::PlayingRecorded) 
-            ? recordingBuffer : generationBuffer);
-        for (int channel = 0; channel < totalNumInputChannels; ++channel)
-        {
-            int samplesToEnd = recordingStartPtr - playbackStartPtr;
-            if (samplesToEnd <= 0) {
-                playbackStartPtr = 0;
-                samplesToEnd = playBuffer.getNumSamples();
+    for (const juce::MidiMessageMetadata& midiMessage : midiMessages) {
+        juce::MidiMessage message = midiMessage.getMessage();
+        if (message.isNoteOn()) {
+            if (!isRecording && midiControlsRecording) {
+                startRecording();
             }
-            int minBufferSize = std::min(playBuffer.getNumSamples(),
-                buffer.getNumSamples());
-            int blockSize = std::min(std::min(minBufferSize, recordingStartPtr), samplesToEnd);
-            buffer.copyFrom(channel, 0,
-                playBuffer.getReadPointer(0) + playbackStartPtr,
-                blockSize
-            );
-            playbackStartPtr += blockSize;
-
+            else if (playState == PlayState::NotPlaying && midiControlsPlayback) {
+                startPlaying(PlayState::PlayingGenerated);
+            }
         }
-    }
-    else if (isRecording) {
-        if (hasAnyAudio) {
-            bool keepGoing = appendBlock(buffer);
-            if (!keepGoing) {
+        else if (message.isNoteOff()) {
+            if (isRecording && midiControlsRecording) {
                 stopRecording();
             }
+            else if (playState != PlayState::NotPlaying && midiControlsPlayback) {
+                stopPlaying();
+            }
         }
-        else {
-            message = "Waiting...";
+    }
+
+    if (buffer.getNumChannels() > 0) {
+        // In case we have more outputs than inputs, this code clears any output
+        // channels that didn't contain input data, (because these aren't
+        // guaranteed to be empty - they may contain garbage).
+        // This is here to avoid people getting screaming feedback
+        // when they first compile a plugin, but obviously you don't need to keep
+        // this code if your algorithm always overwrites all the output channels.
+        for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+            buffer.clear(i, 0, buffer.getNumSamples());
+
+        // This is the place where you'd normally do the guts of your plugin's
+        // audio processing...
+        // Make sure to reset the state if your inner loop is processing
+        // the samples and the outer loop is handling the channels.
+        // Alternatively, you can process the samples with the channels
+        // interleaved by keeping the same state.
+        if (playState != PlayState::NotPlaying) {
+            const auto& playBuffer = ((playState == PlayState::PlayingRecorded)
+                ? recordingBuffer : generationBuffer);
+            for (int channel = 0; channel < totalNumInputChannels; ++channel)
+            {
+                if (buffer.getNumChannels() == 0) {
+                    continue;
+                }
+                int samplesToEnd = recordingStartPtr - playbackStartPtr;
+                if (samplesToEnd <= 0) {
+                    playbackStartPtr = 0;
+                    samplesToEnd = playBuffer.getNumSamples();
+                }
+                int minBufferSize = std::min(playBuffer.getNumSamples(),
+                    buffer.getNumSamples());
+                int blockSize = std::min(std::min(minBufferSize, recordingStartPtr), samplesToEnd);
+                buffer.copyFrom(channel, 0,
+                    playBuffer.getReadPointer(0) + playbackStartPtr,
+                    blockSize
+                );
+                playbackStartPtr += blockSize;
+
+            }
+        }
+        else if (isRecording) {
+            if (hasAnyAudio) {
+                bool keepGoing = appendBlock(buffer);
+                if (!keepGoing) {
+                    stopRecording();
+                }
+            }
+            else {
+                message = "Waiting...";
+            }
         }
     }
 }

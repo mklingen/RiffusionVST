@@ -95,6 +95,15 @@ public:
     // Message displayed in the bottom.
     std::string message = "";
 
+    const juce::AudioBuffer<float>* getRecordingBuffer() const { return &recordingBuffer; }
+    const juce::AudioBuffer<float>* getGenerationBuffer() const { return &generationBuffer; }
+    const int getCurrentSampleRate() const { return currentSampleRate; }
+
+    // If true, any midi notes playing will be interpreted as starting and stopping recording.
+    bool midiControlsRecording = false;
+    // If true, any midi notes playing will be interpreted as starting and stopping playback.
+    bool midiControlsPlayback = false;
+
 private:
     juce::URL buildURL(const ProcessParams& params) const;
     bool getHttpRequest(const juce::URL& url, juce::String* content);
