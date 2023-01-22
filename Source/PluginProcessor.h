@@ -103,6 +103,10 @@ public:
     bool midiControlsRecording = false;
     // If true, any midi notes playing will be interpreted as starting and stopping playback.
     bool midiControlsPlayback = false;
+    
+    // If true, the plugin will wait for the DAW to start playing back audio to
+    // start recording or play back generated audio.
+    bool doesDAWControlTiming = false;
 
 private:
     juce::URL buildURL(const ProcessParams& params) const;
@@ -143,6 +147,12 @@ private:
     int recordingStartPtr = 0;
     // Sample where we are currently outputting the audio data from the buffer.
     int playbackStartPtr = 0;
+    bool wasRecordingLastBlock = false;
+    // If available, this is the timecode (in beats, apparently) from the start
+    // of the track that is given by the DAW when we start recording.
+    double timecodeStartOfRecording = -1.0f;
+    // If available, this is the BPM given by the DAW when we start recording.
+    double bpmStartOfRecording = 0.0f;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RiffusionVSTAudioProcessor)

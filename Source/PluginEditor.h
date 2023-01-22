@@ -55,6 +55,7 @@ private:
     juce::TextButton generateButton;
     juce::TextButton playbackGenerationButton;
     juce::DrawableText messageText;
+    juce::ToggleButton dawControlTimingBox;
     RecordingState state = RecordingState::Idle;
     class LambdaTimer : public juce::Timer {
         public:

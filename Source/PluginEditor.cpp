@@ -75,7 +75,13 @@ RiffusionVSTAudioProcessorEditor::RiffusionVSTAudioProcessorEditor(RiffusionVSTA
 	messageText.setText("");
 	messageText.setColour(juce::Colour(255, 255, 255));
 	messageText.setJustification(juce::Justification::centred);
-
+	dawControlTimingBox.setButtonText("Trigger From DAW");
+	dawControlTimingBox.setToggleable(true);
+	dawControlTimingBox.setToggleState(audioProcessor.doesDAWControlTiming, juce::dontSendNotification);
+	dawControlTimingBox.onClick = [this]()
+	{
+		audioProcessor.doesDAWControlTiming = dawControlTimingBox.getToggleState();
+	};
 	addAndMakeVisible(&serverIp);
 	addAndMakeVisible(&prompt1Text);
 	addAndMakeVisible(&prompt2Text);
@@ -88,6 +94,7 @@ RiffusionVSTAudioProcessorEditor::RiffusionVSTAudioProcessorEditor(RiffusionVSTA
 	addAndMakeVisible(&playbackRecordingButton);
 	addAndMakeVisible(&generateButton);
 	addAndMakeVisible(&playbackGenerationButton);
+	addAndMakeVisible(&dawControlTimingBox);
 	addAndMakeVisible(&messageText);
 	updateTimer.startTimer(kUpdateRateMs);
 	recordingThumbnail.thumbnail.addChangeListener(this);
@@ -327,5 +334,6 @@ void RiffusionVSTAudioProcessorEditor::resized()
 	int gen_row = next_row();
 	generateButton.setBounds(l, gen_row, r / 2, elementHeight);
 	playbackGenerationButton.setBounds(l + r / 2, gen_row, r / 2, elementHeight);
+	dawControlTimingBox.setBounds(l, next_row(), r, elementHeight);
 	messageText.setBoundingBox(juce::Parallelogram(juce::Rectangle<float>(l, next_row(), r, elementHeight)));
 }

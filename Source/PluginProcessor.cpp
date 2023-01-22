@@ -200,10 +200,10 @@ void RiffusionVSTAudioProcessor::stopPlaying()
     message = "Stopped Playing";
 }
 
-void RiffusionVSTAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void RiffusionVSTAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
+    auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     for (const juce::MidiMessageMetadata& midiMessage : midiMessages) {
@@ -225,6 +225,32 @@ void RiffusionVSTAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             }
         }
     }
+    auto currentPosition = getPlayHead()->getPosition();
+    bool waitForDAW = doesDAWControlTiming && (isRecording || playState != PlayState::NotPlaying);
+    if (currentPosition) {
+        if (isRecording && !wasRecordingLastBlock && currentPosition->getIsPlaying()) {
+            timecodeStartOfRecording = currentPosition->getPpqPosition().orFallback(-1.0);
+            bpmStartOfRecording = currentPosition->getBpm().orFallback(-1.0);
+        }
+    }
+    if (waitForDAW) {
+        if (!currentPosition) {
+            return;
+        }
+        if (!currentPosition->getIsPlaying()) {
+            if (!wasRecordingLastBlock) {
+                message = "Waiting for DAW...";
+                return;
+            }
+            else if (isRecording && wasRecordingLastBlock) {
+                stopRecording();
+                wasRecordingLastBlock = false;
+                return;
+            }
+        }
+    }
+
+    wasRecordingLastBlock = isRecording;
 
     if (buffer.getNumChannels() > 0) {
         // In case we have more outputs than inputs, this code clears any output
@@ -245,26 +271,46 @@ void RiffusionVSTAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         if (playState != PlayState::NotPlaying) {
             const auto& playBuffer = ((playState == PlayState::PlayingRecorded)
                 ? recordingBuffer : generationBuffer);
+            int sampleOffset = playbackStartPtr;
+            // Compute a synchronizing sample offset so that we're playing at the precise time
+            // that the DAW tells us it is.
+            if (doesDAWControlTiming && currentPosition && (timecodeStartOfRecording >= 0.0)) {
+                double tBeats = currentPosition->getPpqPosition().orFallback(-1.0);
+                double bpm = bpmStartOfRecording;
+                if (tBeats >= 0.0 && bpm > 0.0) {
+                    // This is the offset time from the start of recording in beats.
+                    // Beats / 1
+                    double deltaTBeats = tBeats - timecodeStartOfRecording;
+                    // Seconds / 1 = Beats / 1 * (Beats / Minute) ^-1 * (Seconds / Minute)
+                    double deltaTSeconds = deltaTBeats / bpm * 60.0;
+                    // Samples / 1 = (Seconds / 1) * (Samples / Second)
+                    sampleOffset = static_cast<int>(deltaTSeconds * currentSampleRate);
+                }
+            }
+            if (sampleOffset < 0) {
+                // Playback is happening before the sample. We can't play it here.
+                return;
+            }
+            int samplesToEnd = recordingStartPtr - sampleOffset;
+            if (samplesToEnd <= 0) {
+                sampleOffset = 0;
+                samplesToEnd = playBuffer.getNumSamples();
+            }
+            int minBufferSize = std::min(playBuffer.getNumSamples(),
+                buffer.getNumSamples());
+            int blockSize = std::min(std::min(minBufferSize, recordingStartPtr), samplesToEnd);
             for (int channel = 0; channel < totalNumInputChannels; ++channel)
             {
                 if (buffer.getNumChannels() == 0) {
                     continue;
                 }
-                int samplesToEnd = recordingStartPtr - playbackStartPtr;
-                if (samplesToEnd <= 0) {
-                    playbackStartPtr = 0;
-                    samplesToEnd = playBuffer.getNumSamples();
-                }
-                int minBufferSize = std::min(playBuffer.getNumSamples(),
-                    buffer.getNumSamples());
-                int blockSize = std::min(std::min(minBufferSize, recordingStartPtr), samplesToEnd);
                 buffer.copyFrom(channel, 0,
-                    playBuffer.getReadPointer(0) + playbackStartPtr,
+                    playBuffer.getReadPointer(0) + sampleOffset,
                     blockSize
                 );
-                playbackStartPtr += blockSize;
-
             }
+            playbackStartPtr = sampleOffset;
+            playbackStartPtr += blockSize;
         }
         else if (isRecording) {
             if (hasAnyAudio) {
