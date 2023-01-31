@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="cwipx0" name="RiffusionVST" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
-              pluginVST3Category="Fx,Generator,Network">
+              pluginVST3Category="Fx,Generator,Network" pluginManufacturer="mklingen">
   <MAINGROUP id="KRu5jy" name="RiffusionVST">
     <GROUP id="{F37BF7D7-566A-BDFC-3FED-B5E3242E74E6}" name="Source">
       <FILE id="gN5x0k" name="PluginProcessor.cpp" compile="1" resource="0"
