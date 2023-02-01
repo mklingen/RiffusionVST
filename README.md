@@ -39,7 +39,7 @@ As of writing, this DOES NOT WORK with standard riffusion servers, you must be u
 
 ## Install from a Release
 1. Download mklingen's special branch, and run the vst server after the lengthy install steps, getting torch setup, conda, etc. https://github.com/mklingen/riffusion-inference
-2. Go to the releases page and select the release appropriate for you. At the time of writing, only releases for 64 bit windows have been generated. I haven't been able to generate Mac based plugins, but it's possible you could build them yourself if you're able to build AU plugins from JUCE on your computer.
+2. Go to the [releases page](https://github.com/mklingen/RiffusionVST/releases) and select the release appropriate for you. At the time of writing, only releases for 64 bit windows have been generated. I haven't been able to generate Mac based plugins, but it's possible you could build them yourself if you're able to build AU plugins from JUCE on your computer.
 3. Download the release and put the .vst3 into the place where you normally put VST3 plugins.
 4. Launch your DAW, and scan for the RiffusionVST plugin.
 5. Run the Riffusion server locally (or, if you have some powerful build machine somewhere, run it there).
@@ -48,7 +48,7 @@ As of writing, this DOES NOT WORK with standard riffusion servers, you must be u
 ## Build from Source
 1. Download mklingen's special branch, and run the vst server after the lengthy install steps, getting torch setup, conda, etc. https://github.com/mklingen/riffusion-inference
 2. Download and install [juce](https://juce.com/get-juce/download), including Projucer.
-3. Open `RiffusionVST.jucer`, and run through the steps of generating a project, either in Visual Studio or XCode.
+3. Open `RiffusionVST.jucer`, and run through the steps of generating a project, either in Visual Studio or XCode. Then, you should see an option like `File > Save and Open in IDE`, which should open either visual studio, xcode or some other IDE for developing C++ code.
 4. On Windows: Build this plugin in Visual Studio after using projucer to generate Visual Studio project files.
 5. A plugin will be generated in the `Builds` folder.
 6. Add the plugin to your favorite DAW.
